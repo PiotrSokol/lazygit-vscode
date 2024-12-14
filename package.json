@@ -2,7 +2,7 @@
   "name": "lazygit-vscode",
   "displayName": "LazyGit VSCode",
   "description": "Native integration of LazyGit directly in a VSCode window",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "publisher": "TomPollak",
   "engines": {
     "vscode": "^1.85.0"
@@ -69,8 +69,8 @@
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
-    "@types/vscode": "^1.85.0",
     "@types/node": "18.x",
+    "@types/vscode": "^1.96.0",
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
     "eslint": "^8.56.0",
