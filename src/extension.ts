@@ -107,9 +107,21 @@ export function deactivate() {}
 async function createWindow() {
   await reloadIfConfigChange();
 
-  let workspaceFolder = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
-  if (!workspaceFolder) workspaceFolder = os.homedir();
+  let cwd = os.homedir();
 
+  // First try to get folder containing active file
+  const activeEditor = vscode.window.activeTextEditor;
+  if (activeEditor) {
+    const fileUri = activeEditor.document.uri;
+    if (fileUri.scheme === 'file') {
+      cwd = path.dirname(fileUri.fsPath);
+    }
+  }
+  // Fall back to workspace folder if no active file
+  else if (vscode.workspace.workspaceFolders?.[0]) {
+    cwd = vscode.workspace.workspaceFolders[0].uri.fsPath;
+  }
+  console.log(`lazygit: ${cwd}`);
   assert(globalConfig.lazyGitPath, "Uncaught error: lazygitpath is undefined!");
   let lazyGitCommand = globalConfig.lazyGitPath;
   if (globalConfig.configPath) {
@@ -128,7 +140,7 @@ async function createWindow() {
 
   lazyGitTerminal = vscode.window.createTerminal({
     name: "LazyGit",
-    cwd: workspaceFolder,
+    cwd: cwd,
     shellPath:
       process.platform === "win32"
         ? "cmd.exe"
