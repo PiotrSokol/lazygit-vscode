@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
+import * as process from "process";
 import { exec } from "child_process";
 import assert = require("assert");
 
@@ -37,8 +38,14 @@ async function reloadIfConfigChange() {
   }
 }
 
-function expandHome(pth: string): string {
-  return path.normalize(pth.replace(/^~(?=$|\/|\\)/, os.homedir()));
+function expandPath(pth: string): string {
+  pth = pth.replace(/^~(?=$|\/|\\)/, os.homedir());
+  if (process.platform === "win32") {
+    pth = pth.replace(/%([^%]+)%/g, (_,n) => process.env[n] || "");
+  } else {
+    pth = pth.replace(/\$([A-Za-z0-9_]+)/g, (_, n) => process.env[n] || "");
+  }
+  return pth;
 }
 
 async function loadExtension() {
@@ -46,12 +53,12 @@ async function loadExtension() {
   globalConfigJSON = JSON.stringify(globalConfig);
 
   if (globalConfig.configPath) {
-    globalConfig.configPath = expandHome(globalConfig.configPath);
+    globalConfig.configPath = expandPath(globalConfig.configPath);
   }
 
   // Validate lazyGitPath
   if (globalConfig.lazyGitPath) {
-    globalConfig.lazyGitPath = expandHome(globalConfig.lazyGitPath);
+    globalConfig.lazyGitPath = expandPath(globalConfig.lazyGitPath);
   } else {
     try {
       globalConfig.lazyGitPath = await findExecutableOnPath("lazygit");
@@ -143,7 +150,7 @@ async function createWindow() {
     cwd: cwd,
     shellPath:
       process.platform === "win32"
-        ? "cmd.exe"
+        ? "powershell.exe"
         : await findExecutableOnPath("bash"),
     shellArgs:
       process.platform === "win32"
